@@ -105,7 +105,7 @@ public class HelpRequestControllerTests extends ControllerTestCase {
             .teamId("f25-5pm-15")
             .tableOrBreakoutRoom("15")
             .explanation("CrudHelp")
-            .solved(false)
+            .solved(true)
             .requestTime(ldt1)
             .build();
 
@@ -115,7 +115,7 @@ public class HelpRequestControllerTests extends ControllerTestCase {
     MvcResult response =
         mockMvc
             .perform(
-                post("/api/helprequests/post?requesterEmail=kelvinfang@ucsb.edu&teamId=f25-5pm-15&tableOrBreakoutRoom=15&explanation=CrudHelp&solved=false&requestTime=2022-01-03T00:00:00")
+                post("/api/helprequests/post?requesterEmail=kelvinfang@ucsb.edu&teamId=f25-5pm-15&tableOrBreakoutRoom=15&explanation=CrudHelp&solved=true&requestTime=2022-01-03T00:00:00")
                     .with(csrf()))
             .andExpect(status().isOk())
             .andReturn();
