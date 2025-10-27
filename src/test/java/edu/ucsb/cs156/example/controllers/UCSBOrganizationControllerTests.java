@@ -3,6 +3,7 @@ package edu.ucsb.cs156.example.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,6 +19,8 @@ import edu.ucsb.cs156.example.repositories.UserRepository;
 import edu.ucsb.cs156.example.testconfig.TestConfig;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -140,5 +143,60 @@ public class UCSBOrganizationControllerTests extends ControllerTestCase {
 
     String expectedJson = mapper.writeValueAsString(saved);
     assertEquals(expectedJson, res.getResponse().getContentAsString());
+  }
+
+  // Get addtions
+
+  @Test
+  public void logged_out_users_cannot_get_by_orgCode() throws Exception {
+    mockMvc
+        .perform(get("/api/ucsborganizations").param("orgCode", "ZPR"))
+        .andExpect(status().is(403));
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_user_can_get_by_orgCode_when_it_exists() throws Exception {
+    UCSBOrganization expected =
+        UCSBOrganization.builder()
+            .orgCode("ZPR")
+            .orgTranslationShort("ZETA PHI RHO")
+            .orgTranslation("ZETA PHI RHO")
+            .inactive(false)
+            .build();
+
+    when(ucsbOrganizationRepository.findById(eq("ZPR"))).thenReturn(Optional.of(expected));
+    MvcResult response =
+        mockMvc
+            .perform(get("/api/ucsborganizations").param("orgCode", "ZPR"))
+            .andExpect(status().isOk())
+            .andReturn();
+    verify(ucsbOrganizationRepository, times(1)).findById(eq("ZPR"));
+    String responseString = response.getResponse().getContentAsString();
+    String expectedJson = mapper.writeValueAsString(expected);
+    assertEquals(expectedJson, responseString);
+    UCSBOrganization passed = mapper.readValue(responseString, UCSBOrganization.class);
+    assertEquals("ZPR", passed.getOrgCode());
+    assertEquals("ZETA PHI RHO", passed.getOrgTranslationShort());
+    assertEquals("ZETA PHI RHO", passed.getOrgTranslation());
+    assertFalse(passed.getInactive());
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_user_gets_404_when_orgCode_not_found() throws Exception {
+    when(ucsbOrganizationRepository.findById(eq("NOPE"))).thenReturn(Optional.empty());
+
+    MvcResult response =
+        mockMvc
+            .perform(get("/api/ucsborganizations").param("orgCode", "NOPE"))
+            .andExpect(status().isNotFound())
+            .andReturn();
+
+    verify(ucsbOrganizationRepository, times(1)).findById(eq("NOPE"));
+
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("EntityNotFoundException", json.get("type"));
+    assertEquals("UCSBOrganization with id NOPE not found", json.get("message"));
   }
 }
