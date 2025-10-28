@@ -5,7 +5,4 @@ import org.springframework.stereotype.Repository;
 
 /** The UCSBDateRepository is a repository for RecommendationRequest entities. */
 @Repository
-public interface RecommendationRequestRepository extends CrudRepository<UCSBDate, Long> {
-
-  Iterable<UCSBDate> findAllByQuarterYYYYQ(String quarterYYYYQ);
-}
+public interface RecommendationRequestRepository extends CrudRepository<UCSBDate, Long> {}
