@@ -49,13 +49,13 @@ public class UCSBDiningCommonsMenuItemController extends ApiController {
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   @PostMapping("/post")
   public UCSBDiningCommonsMenuItem postUCSBDiningCommonsMenuItem(
-      @Parameter(name = "diningCommonsCode") @RequestParam String diningCommonsCode,
+      @Parameter(name = "dining_commons_code") @RequestParam String dining_commons_code,
       @Parameter(name = "name") @RequestParam String name,
       @Parameter(name = "station") @RequestParam String station)
       throws JsonProcessingException {
 
     UCSBDiningCommonsMenuItem ucsbDiningCommonsMenuItem = new UCSBDiningCommonsMenuItem();
-    ucsbDiningCommonsMenuItem.setDiningCommonsCode(diningCommonsCode);
+    ucsbDiningCommonsMenuItem.setDining_commons_code(dining_commons_code);
     ucsbDiningCommonsMenuItem.setName(name);
     ucsbDiningCommonsMenuItem.setStation(station);
 
