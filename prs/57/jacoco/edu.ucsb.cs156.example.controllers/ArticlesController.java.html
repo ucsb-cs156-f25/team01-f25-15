@@ -118,20 +118,20 @@ import org.springframework.web.bind.annotation.RestController;
   public Article updateArticle(
       @Parameter(name = &quot;id&quot;) @RequestParam Long id, @RequestBody @Valid Article incoming) {
 
-<span class="nc" id="L121">    Article article =</span>
+<span class="fc" id="L121">    Article article =</span>
         articleRepository
-<span class="nc" id="L123">            .findById(id)</span>
-<span class="nc" id="L124">            .orElseThrow(() -&gt; new EntityNotFoundException(Article.class, id));</span>
+<span class="fc" id="L123">            .findById(id)</span>
+<span class="fc" id="L124">            .orElseThrow(() -&gt; new EntityNotFoundException(Article.class, id));</span>
 
-<span class="nc" id="L126">    article.setTitle(incoming.getTitle());</span>
-<span class="nc" id="L127">    article.setUrl(incoming.getUrl());</span>
-<span class="nc" id="L128">    article.setExplanation(incoming.getExplanation());</span>
-<span class="nc" id="L129">    article.setEmail(incoming.getEmail());</span>
-<span class="nc" id="L130">    article.setLocalDateTime(incoming.getLocalDateTime());</span>
+<span class="fc" id="L126">    article.setTitle(incoming.getTitle());</span>
+<span class="fc" id="L127">    article.setUrl(incoming.getUrl());</span>
+<span class="fc" id="L128">    article.setExplanation(incoming.getExplanation());</span>
+<span class="fc" id="L129">    article.setEmail(incoming.getEmail());</span>
+<span class="fc" id="L130">    article.setLocalDateTime(incoming.getLocalDateTime());</span>
 
-<span class="nc" id="L132">    articleRepository.save(article);</span>
+<span class="fc" id="L132">    articleRepository.save(article);</span>
 
-<span class="nc" id="L134">    return article;</span>
+<span class="fc" id="L134">    return article;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
