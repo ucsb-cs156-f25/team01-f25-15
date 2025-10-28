@@ -33,6 +33,8 @@ public class UCSBOrganizationControllerTests extends ControllerTestCase {
   @MockBean UCSBOrganizationRepository ucsbOrganizationRepository;
   @MockBean UserRepository userRepository;
 
+  // --- Authorization Tests ---
+
   @Test
   public void logged_out_users_cannot_get_all() throws Exception {
     mockMvc.perform(get("/api/ucsborganizations/all")).andExpect(status().is(403));
@@ -54,6 +56,8 @@ public class UCSBOrganizationControllerTests extends ControllerTestCase {
   public void logged_in_regular_users_cannot_post() throws Exception {
     mockMvc.perform(post("/api/ucsborganizations/post")).andExpect(status().is(403));
   }
+
+  // --- GET /all ---
 
   @WithMockUser(roles = {"USER"})
   @Test
@@ -79,6 +83,8 @@ public class UCSBOrganizationControllerTests extends ControllerTestCase {
     String expectedJson = mapper.writeValueAsString(Arrays.asList(a, b));
     assertEquals(expectedJson, response.getResponse().getContentAsString());
   }
+
+  // --- POST /post ---
 
   @WithMockUser(roles = {"ADMIN", "USER"})
   @Test
