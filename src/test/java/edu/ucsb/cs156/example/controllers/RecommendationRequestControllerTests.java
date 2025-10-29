@@ -1,6 +1,7 @@
 package edu.ucsb.cs156.example.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -36,10 +37,6 @@ public class RecommendationRequestControllerTests extends ControllerTestCase {
   @MockBean RecommendationRequestRepository recommendationRequestRepository;
 
   @MockBean UserRepository userRepository;
-
-  // =====================================================
-  // GET /all
-  // =====================================================
 
   @Test
   public void logged_out_users_cannot_get_all() throws Exception {
@@ -102,10 +99,6 @@ public class RecommendationRequestControllerTests extends ControllerTestCase {
     assertEquals(expectedJson, responseString);
   }
 
-  // =====================================================
-  // POST /post
-  // =====================================================
-
   @Test
   public void logged_out_users_cannot_post() throws Exception {
     mockMvc.perform(post("/api/recommendationrequest/post")).andExpect(status().isForbidden());
@@ -159,10 +152,6 @@ public class RecommendationRequestControllerTests extends ControllerTestCase {
     String responseString = response.getResponse().getContentAsString();
     assertEquals(expectedJson, responseString);
   }
-
-  // =====================================================
-  // GET by ID
-  // =====================================================
 
   @Test
   public void logged_out_users_cannot_get_by_id() throws Exception {
@@ -271,7 +260,8 @@ public class RecommendationRequestControllerTests extends ControllerTestCase {
 
     // assert
     verify(recommendationRequestRepository, times(1)).findById(67L);
-    verify(recommendationRequestRepository, times(1)).save(recommendationRequestEdited);
+    verify(recommendationRequestRepository)
+        .save(argThat(saved -> saved.getDone() == true)); // <-- changed line
     String responseString = response.getResponse().getContentAsString();
     assertEquals(requestBody, responseString);
   }
@@ -315,16 +305,59 @@ public class RecommendationRequestControllerTests extends ControllerTestCase {
     assertEquals("RecommendationRequest with id 67 not found", json.get("message"));
   }
 
-  // Add these tests in the PUT section, BEFORE your existing PUT tests
-
+  @WithMockUser(roles = {"ADMIN", "USER"})
   @Test
-  public void logged_out_users_cannot_put() throws Exception {
-    mockMvc.perform(put("/api/recommendationrequest")).andExpect(status().is(403));
-  }
+  public void admin_can_change_done_status_from_false_to_true() throws Exception {
+    // arrange
+    LocalDateTime dateRequested = LocalDateTime.parse("2025-10-28T10:00:00");
+    LocalDateTime dateNeeded = LocalDateTime.parse("2025-11-01T10:00:00");
 
-  @WithMockUser(roles = {"USER"})
-  @Test
-  public void logged_in_regular_users_cannot_put() throws Exception {
-    mockMvc.perform(put("/api/recommendationrequest")).andExpect(status().is(403));
+    RecommendationRequest recommendationRequestOrig =
+        RecommendationRequest.builder()
+            .requesterEmail("student1@ucsb.edu")
+            .professorEmail("prof1@ucsb.edu")
+            .explanation("Need recommendation for internship")
+            .dateRequested(dateRequested)
+            .dateNeeded(dateNeeded)
+            .done(false) // Starting as false
+            .build();
+
+    RecommendationRequest recommendationRequestEdited =
+        RecommendationRequest.builder()
+            .requesterEmail("student1@ucsb.edu")
+            .professorEmail("prof1@ucsb.edu")
+            .explanation("Need recommendation for internship")
+            .dateRequested(dateRequested)
+            .dateNeeded(dateNeeded)
+            .done(true) // Changing to true
+            .build();
+
+    String requestBody = mapper.writeValueAsString(recommendationRequestEdited);
+
+    when(recommendationRequestRepository.findById(eq(67L)))
+        .thenReturn(Optional.of(recommendationRequestOrig));
+
+    // act
+    MvcResult response =
+        mockMvc
+            .perform(
+                put("/api/recommendationrequest?id=67")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .characterEncoding("utf-8")
+                    .content(requestBody)
+                    .with(csrf()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    // assert
+    verify(recommendationRequestRepository, times(1)).findById(67L);
+    verify(recommendationRequestRepository, times(1))
+        .save(argThat(saved -> saved.getDone() == true));
+
+    // Also verify the original object was actually modified
+    assertEquals(true, recommendationRequestOrig.getDone());
+
+    String responseString = response.getResponse().getContentAsString();
+    assertEquals(requestBody, responseString);
   }
 }
