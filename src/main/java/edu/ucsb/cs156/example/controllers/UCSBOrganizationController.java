@@ -1,20 +1,24 @@
 package edu.ucsb.cs156.example.controllers;
 
 import edu.ucsb.cs156.example.entities.UCSBOrganization;
+import edu.ucsb.cs156.example.errors.EntityNotFoundException;
 import edu.ucsb.cs156.example.repositories.UCSBOrganizationRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** REST controller for UCSBOrganization */
 @Tag(name = "UCSBOrganization")
 @RequestMapping("/api/ucsborganizations")
 @RestController
@@ -23,7 +27,6 @@ public class UCSBOrganizationController extends ApiController {
 
   @Autowired UCSBOrganizationRepository ucsbOrganizationRepository;
 
-  /** List all organizations (ROLE_USER). */
   @Operation(summary = "List all UCSB organizations")
   @PreAuthorize("hasRole('ROLE_USER')")
   @GetMapping("/all")
@@ -32,7 +35,6 @@ public class UCSBOrganizationController extends ApiController {
     return orgs;
   }
 
-  /** Create a new organization (ROLE_ADMIN). */
   @Operation(summary = "Create a new UCSBOrganization")
   @PreAuthorize("hasRole('ROLE_ADMIN')")
   @PostMapping("/post")
@@ -50,5 +52,47 @@ public class UCSBOrganizationController extends ApiController {
 
     UCSBOrganization saved = ucsbOrganizationRepository.save(org);
     return saved;
+  }
+
+  // get addtionals
+  @Operation(summary = "Get a single organization by orgCode")
+  @PreAuthorize("hasRole('ROLE_USER')")
+  @GetMapping("")
+  public UCSBOrganization getById(@Parameter(name = "orgCode") @RequestParam String orgCode) {
+    return ucsbOrganizationRepository
+        .findById(orgCode)
+        .orElseThrow(() -> new EntityNotFoundException(UCSBOrganization.class, orgCode));
+  }
+
+  // put endpoint
+  @Operation(summary = "Update a single organization")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PutMapping("")
+  public UCSBOrganization updateOrganization(
+      @Parameter(name = "orgCode") @RequestParam String orgCode,
+      @RequestBody UCSBOrganization incoming) {
+    UCSBOrganization org =
+        ucsbOrganizationRepository
+            .findById(orgCode)
+            .orElseThrow(() -> new EntityNotFoundException(UCSBOrganization.class, orgCode));
+    org.setOrgTranslationShort(incoming.getOrgTranslationShort());
+    org.setOrgTranslation(incoming.getOrgTranslation());
+    org.setInactive(incoming.getInactive());
+    UCSBOrganization saved = ucsbOrganizationRepository.save(org);
+    return saved;
+  }
+
+  // delete endpoint
+  @Operation(summary = "Delete a single organization by orgCode")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @DeleteMapping("")
+  public Object deleteOrganization(@Parameter(name = "orgCode") @RequestParam String orgCode) {
+
+    UCSBOrganization org =
+        ucsbOrganizationRepository
+            .findById(orgCode)
+            .orElseThrow(() -> new EntityNotFoundException(UCSBOrganization.class, orgCode));
+    ucsbOrganizationRepository.delete(org);
+    return Map.of("message", String.format("UCSBOrganization with id %s deleted", orgCode));
   }
 }

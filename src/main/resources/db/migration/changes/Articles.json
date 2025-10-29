@@ -2,8 +2,8 @@
     "databaseChangeLog": [
       {
         "changeSet": {
-          "id": "RecommendationRequest-1",
-          "author": "MattP",
+          "id": "Articles-1",
+          "author": "novuxx888",
           "preConditions": [
             {
               "onFail": "MARK_RAN"
@@ -12,7 +12,7 @@
               "not": [
                 {
                   "tableExists": {
-                    "tableName": "RecommendationRequest"
+                    "tableName": "ARTICLES"
                   }
                 }
               ]
@@ -27,7 +27,7 @@
                       "autoIncrement": true,
                       "constraints": {
                         "primaryKey": true,
-                        "primaryKeyName": "RecommendationRequest_PK"
+                        "primaryKeyName": "ARTICLES_PK"
                       },
                       "name": "ID",
                       "type": "BIGINT"
@@ -35,13 +35,13 @@
                   },
                   {
                     "column": {
-                      "name": "REQUESTER_EMAIL",
+                      "name": "TITLE",
                       "type": "VARCHAR(255)"
                     }
                   },
                   {
                     "column": {
-                      "name": "PROFESSOR_EMAIL",
+                      "name": "URL",
                       "type": "VARCHAR(255)"
                     }
                   },
@@ -53,24 +53,18 @@
                   },
                   {
                     "column": {
-                      "name": "DATE_REQUESTED",
+                      "name": "EMAIL",
                       "type": "VARCHAR(255)"
                     }
                   },
                   {
                     "column": {
-                      "name": "DATE_NEEDED",
+                      "name": "LOCAL_DATE_TIME",
                       "type": "TIMESTAMP"
-                    }
-                  },
-                  {
-                    "column": {
-                      "name": "DONE",
-                      "type": "BOOLEAN"
                     }
                   }
                 ],
-                "tableName": "RecommendationRequest"
+                "tableName": "ARTICLES"
               }
             }
           ]
