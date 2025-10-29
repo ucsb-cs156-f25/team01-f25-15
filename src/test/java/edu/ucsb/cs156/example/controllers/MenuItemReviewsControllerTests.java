@@ -1,7 +1,6 @@
 package edu.ucsb.cs156.example.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -61,7 +60,7 @@ public class MenuItemReviewsControllerTests extends ControllerTestCase {
 
   @WithMockUser(roles = {"USER"})
   @Test
-  public void logged_in_user_can_get_all_ucsbdates() throws Exception {
+  public void logged_in_user_can_get_all_menuitemreviews() throws Exception {
 
     // arrange
     LocalDateTime ldt1 = LocalDateTime.parse("2022-01-03T00:00:00");
@@ -94,7 +93,7 @@ public class MenuItemReviewsControllerTests extends ControllerTestCase {
 
   @WithMockUser(roles = {"ADMIN", "USER"})
   @Test
-  public void an_admin_user_can_post_a_new_ucsbdate() throws Exception {
+  public void an_admin_user_can_post_a_new_menuitemreview() throws Exception {
     // arrange
 
     LocalDateTime ldt1 = LocalDateTime.parse("2022-01-03T00:00:00");
@@ -108,7 +107,7 @@ public class MenuItemReviewsControllerTests extends ControllerTestCase {
             .comments("Great!")
             .build();
 
-    when(menuItemReviewRepository.save(eq(menuItemReview1))).thenReturn(menuItemReview1);
+    when(menuItemReviewRepository.save(menuItemReview1)).thenReturn(menuItemReview1);
 
     // act
     MvcResult response =
