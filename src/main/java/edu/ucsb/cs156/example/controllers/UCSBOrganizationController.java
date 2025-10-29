@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,5 +60,23 @@ public class UCSBOrganizationController extends ApiController {
     return ucsbOrganizationRepository
         .findById(orgCode)
         .orElseThrow(() -> new EntityNotFoundException(UCSBOrganization.class, orgCode));
+  }
+
+  // put endpoint
+  @Operation(summary = "Update a single organization")
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PutMapping("")
+  public UCSBOrganization updateOrganization(
+      @Parameter(name = "orgCode") @RequestParam String orgCode,
+      @RequestBody UCSBOrganization incoming) {
+    UCSBOrganization org =
+        ucsbOrganizationRepository
+            .findById(orgCode)
+            .orElseThrow(() -> new EntityNotFoundException(UCSBOrganization.class, orgCode));
+    org.setOrgTranslationShort(incoming.getOrgTranslationShort());
+    org.setOrgTranslation(incoming.getOrgTranslation());
+    org.setInactive(incoming.getInactive());
+    UCSBOrganization saved = ucsbOrganizationRepository.save(org);
+    return saved;
   }
 }
