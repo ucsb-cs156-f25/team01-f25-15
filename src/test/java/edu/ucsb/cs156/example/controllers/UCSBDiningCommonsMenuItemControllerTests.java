@@ -17,6 +17,8 @@ import edu.ucsb.cs156.example.repositories.UserRepository;
 import edu.ucsb.cs156.example.testconfig.TestConfig;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -41,12 +43,61 @@ public class UCSBDiningCommonsMenuItemControllerTests extends ControllerTestCase
         .andExpect(status().is(403)); // logged out users can't get all
   }
 
+  @Test
+  public void logged_out_users_cannot_get_by_id() throws Exception {
+    mockMvc
+        .perform(get("/api/UCSBDiningCommonsMenuItem?id=7"))
+        .andExpect(status().is(403)); // logged out users can't get by id
+  }
+
   @WithMockUser(roles = {"USER"})
   @Test
   public void logged_in_users_can_get_all() throws Exception {
     mockMvc
         .perform(get("/api/UCSBDiningCommonsMenuItem/all"))
         .andExpect(status().is(200)); // logged
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void test_that_logged_in_user_can_get_by_id_when_the_id_exists() throws Exception {
+    // arrange
+    UCSBDiningCommonsMenuItem menu_item =
+        UCSBDiningCommonsMenuItem.builder()
+            .dining_commons_code("ortega")
+            .name("Mac-n-Cheese")
+            .station("East Plate")
+            .build();
+    when(ucsbDiningCommonsMenuItemRepository.findById(eq(7L))).thenReturn(Optional.of(menu_item));
+    // act
+    MvcResult response =
+        mockMvc
+            .perform(get("/api/UCSBDiningCommonsMenuItem?id=7"))
+            .andExpect(status().isOk())
+            .andReturn();
+    // assert
+    verify(ucsbDiningCommonsMenuItemRepository, times(1)).findById(eq(7L));
+    String expectedJson = mapper.writeValueAsString(menu_item);
+    String responseString = response.getResponse().getContentAsString();
+    assertEquals(expectedJson, responseString);
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void test_that_logged_in_user_can_get_by_id_when_the_id_does_not_exist() throws Exception {
+    // arrange
+    when(ucsbDiningCommonsMenuItemRepository.findById(eq(7L))).thenReturn(Optional.empty());
+    // act
+    MvcResult response =
+        mockMvc
+            .perform(get("/api/UCSBDiningCommonsMenuItem?id=7"))
+            .andExpect(status().isNotFound())
+            .andReturn();
+    // assert
+    verify(ucsbDiningCommonsMenuItemRepository, times(1)).findById(eq(7L));
+    Map<String, Object> json = responseToJson(response);
+    assertEquals("EntityNotFoundException", json.get("type"));
+    assertEquals("UCSBDiningCommonsMenuItem with id 7 not found", json.get("message"));
   }
 
   // Authorization tests for /api/UCSBDiningCommonsMenuItem/post
@@ -71,7 +122,6 @@ public class UCSBDiningCommonsMenuItemControllerTests extends ControllerTestCase
   @Test
   public void logged_in_user_can_get_all_menu_items() throws Exception {
     // arrange
-
     UCSBDiningCommonsMenuItem menu_item_1 =
         UCSBDiningCommonsMenuItem.builder()
             .dining_commons_code("ortega")
@@ -88,9 +138,7 @@ public class UCSBDiningCommonsMenuItemControllerTests extends ControllerTestCase
 
     ArrayList<UCSBDiningCommonsMenuItem> expectedItems = new ArrayList<>();
     expectedItems.addAll(Arrays.asList(menu_item_1, menu_item_2));
-
     when(ucsbDiningCommonsMenuItemRepository.findAll()).thenReturn(expectedItems);
-
     // act
     MvcResult response =
         mockMvc
@@ -115,9 +163,7 @@ public class UCSBDiningCommonsMenuItemControllerTests extends ControllerTestCase
             .name("MacnCheese")
             .station("East_Plate")
             .build();
-
     when(ucsbDiningCommonsMenuItemRepository.save(eq(menu_item_1))).thenReturn(menu_item_1);
-
     // act
     MvcResult response =
         mockMvc
