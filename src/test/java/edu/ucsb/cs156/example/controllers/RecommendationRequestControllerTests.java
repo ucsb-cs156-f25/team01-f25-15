@@ -223,10 +223,6 @@ public class RecommendationRequestControllerTests extends ControllerTestCase {
     assertEquals("RecommendationRequest with id 7 not found", json.get("message"));
   }
 
-  // =====================================================
-  // PUT (edit)
-  // =====================================================
-
   @WithMockUser(roles = {"ADMIN", "USER"})
   @Test
   public void admin_can_edit_an_existing_recommendationrequest() throws Exception {
@@ -317,5 +313,18 @@ public class RecommendationRequestControllerTests extends ControllerTestCase {
     verify(recommendationRequestRepository, times(1)).findById(67L);
     Map<String, Object> json = responseToJson(response);
     assertEquals("RecommendationRequest with id 67 not found", json.get("message"));
+  }
+
+  // Add these tests in the PUT section, BEFORE your existing PUT tests
+
+  @Test
+  public void logged_out_users_cannot_put() throws Exception {
+    mockMvc.perform(put("/api/recommendationrequest")).andExpect(status().is(403));
+  }
+
+  @WithMockUser(roles = {"USER"})
+  @Test
+  public void logged_in_regular_users_cannot_put() throws Exception {
+    mockMvc.perform(put("/api/recommendationrequest")).andExpect(status().is(403));
   }
 }
