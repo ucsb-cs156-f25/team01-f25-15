@@ -141,13 +141,57 @@ public class RecommendationRequestControllerTests extends ControllerTestCase {
                         + "&explanation=Need recommendation for internship"
                         + "&dateRequested=2025-10-28T10:00:00"
                         + "&dateNeeded=2025-11-01T10:00:00"
-                        + "&done=false") // ADDED THIS LINE
+                        + "&done=false")
                     .with(csrf()))
             .andExpect(status().isOk())
             .andReturn();
 
     // Assert
     verify(recommendationRequestRepository, times(1)).save(recommendationRequest);
+    String expectedJson = mapper.writeValueAsString(recommendationRequest);
+    String responseString = response.getResponse().getContentAsString();
+    assertEquals(expectedJson, responseString);
+  }
+
+  @WithMockUser(roles = {"ADMIN", "USER"})
+  @Test
+  public void an_admin_user_can_post_a_new_recommendationrequest_with_done_true() throws Exception {
+
+    // Arrange
+    LocalDateTime dateRequested = LocalDateTime.parse("2025-10-28T10:00:00");
+    LocalDateTime dateNeeded = LocalDateTime.parse("2025-11-01T10:00:00");
+
+    RecommendationRequest recommendationRequest =
+        RecommendationRequest.builder()
+            .requesterEmail("student1@ucsb.edu")
+            .professorEmail("prof1@ucsb.edu")
+            .explanation("Need recommendation for internship")
+            .dateRequested(dateRequested)
+            .dateNeeded(dateNeeded)
+            .done(true)
+            .build();
+
+    when(recommendationRequestRepository.save(eq(recommendationRequest)))
+        .thenReturn(recommendationRequest);
+
+    // Act
+    MvcResult response =
+        mockMvc
+            .perform(
+                post("/api/recommendationrequest/post?"
+                        + "requesterEmail=student1@ucsb.edu"
+                        + "&professorEmail=prof1@ucsb.edu"
+                        + "&explanation=Need recommendation for internship"
+                        + "&dateRequested=2025-10-28T10:00:00"
+                        + "&dateNeeded=2025-11-01T10:00:00"
+                        + "&done=true")
+                    .with(csrf()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    // Assert
+    verify(recommendationRequestRepository, times(1))
+        .save(argThat(saved -> saved.getDone() == true));
     String expectedJson = mapper.writeValueAsString(recommendationRequest);
     String responseString = response.getResponse().getContentAsString();
     assertEquals(expectedJson, responseString);
@@ -260,8 +304,8 @@ public class RecommendationRequestControllerTests extends ControllerTestCase {
 
     // assert
     verify(recommendationRequestRepository, times(1)).findById(67L);
-    verify(recommendationRequestRepository)
-        .save(argThat(saved -> saved.getDone() == true)); // <-- changed line
+    verify(recommendationRequestRepository, times(1))
+        .save(argThat(saved -> saved.getDone() == true));
     String responseString = response.getResponse().getContentAsString();
     assertEquals(requestBody, responseString);
   }
@@ -307,7 +351,7 @@ public class RecommendationRequestControllerTests extends ControllerTestCase {
 
   @WithMockUser(roles = {"ADMIN", "USER"})
   @Test
-  public void admin_can_change_done_status_from_false_to_true() throws Exception {
+  public void admin_can_change_done_from_true_to_false() throws Exception {
     // arrange
     LocalDateTime dateRequested = LocalDateTime.parse("2025-10-28T10:00:00");
     LocalDateTime dateNeeded = LocalDateTime.parse("2025-11-01T10:00:00");
@@ -319,7 +363,7 @@ public class RecommendationRequestControllerTests extends ControllerTestCase {
             .explanation("Need recommendation for internship")
             .dateRequested(dateRequested)
             .dateNeeded(dateNeeded)
-            .done(false) // Starting as false
+            .done(true) // Starting as TRUE
             .build();
 
     RecommendationRequest recommendationRequestEdited =
@@ -329,7 +373,7 @@ public class RecommendationRequestControllerTests extends ControllerTestCase {
             .explanation("Need recommendation for internship")
             .dateRequested(dateRequested)
             .dateNeeded(dateNeeded)
-            .done(true) // Changing to true
+            .done(false) // Changing to FALSE
             .build();
 
     String requestBody = mapper.writeValueAsString(recommendationRequestEdited);
@@ -352,11 +396,7 @@ public class RecommendationRequestControllerTests extends ControllerTestCase {
     // assert
     verify(recommendationRequestRepository, times(1)).findById(67L);
     verify(recommendationRequestRepository, times(1))
-        .save(argThat(saved -> saved.getDone() == true));
-
-    // Also verify the original object was actually modified
-    assertEquals(true, recommendationRequestOrig.getDone());
-
+        .save(argThat(saved -> saved.getDone() == false));
     String responseString = response.getResponse().getContentAsString();
     assertEquals(requestBody, responseString);
   }
