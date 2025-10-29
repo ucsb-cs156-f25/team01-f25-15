@@ -9,4 +9,4 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface UCSBDiningCommonsMenuItemRepository
-    extends CrudRepository<UCSBDiningCommonsMenuItem, String> {}
+    extends CrudRepository<UCSBDiningCommonsMenuItem, Long> {}
